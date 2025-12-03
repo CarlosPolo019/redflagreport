@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Red Flag Report 🚩</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; background-color: #f3f4f6; }
+        .bg-gradient-animate { background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); background-size: 400% 400%; animation: gradient 15s ease infinite; }
+        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .bento-card { background: rgba(255, 255, 255, 0.90); backdrop-filter: blur(12px); border-radius: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.6); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02); }
+        .bento-card:hover { transform: translateY(-5px) scale(1.01); box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); background: rgba(255, 255, 255, 0.98); }
+        .glass-table { border-collapse: separate; border-spacing: 0 10px; }
+        .glass-table thead tr th { background: transparent; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 1rem; }
+        .glass-table tbody tr { background: rgba(255, 255, 255, 0.8); box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: all 0.2s; cursor: pointer; }
+        .glass-table tbody tr:hover { transform: scale(1.01); background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .glass-table td { padding: 1rem; }
+        .glass-table td:first-child { border-top-left-radius: 1rem; border-bottom-left-radius: 1rem; }
+        .glass-table td:last-child { border-top-right-radius: 1rem; border-bottom-right-radius: 1rem; }
+        .modal { transition: opacity 0.25s ease; }
+        body.modal-active { overflow-x: hidden; overflow-y: visible !important; }
+        .highlight-case { border-left: 5px solid #ec4899; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .loading-bar-container { width: 250px; height: 8px; background: rgba(255, 255, 255, 0.3); border-radius: 999px; overflow: hidden; position: relative; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
+        .loading-bar-fill { height: 100%; background: linear-gradient(90deg, #fbbf24, #f472b6, #a78bfa); width: 0%; border-radius: 999px; animation: infiniteProgress 1.5s ease-in-out infinite; }
+        @keyframes infiniteProgress { 0% { width: 5%; transform: translateX(-10%); } 50% { width: 70%; } 100% { width: 100%; transform: translateX(150%); } }
+        .swipe-like { animation: swipeLike 0.45s ease; }
+        .swipe-pass { animation: swipePass 0.45s ease; }
+        @keyframes swipeLike { 0% { transform: scale(1); box-shadow: 0 20px 45px rgba(244,63,94,0.2); } 60% { transform: translateX(10px) rotate(1deg) scale(1.02); } 100% { transform: scale(1); } }
+        @keyframes swipePass { 0% { transform: scale(1); } 60% { transform: translateX(-10px) rotate(-1deg) scale(0.98); } 100% { transform: scale(1); } }
+        .clamped-story { display: -webkit-box; -webkit-line-clamp: 10; -webkit-box-orient: vertical; overflow: hidden; }
+        .story-preview { background: rgba(15,23,42,0.04); border: 1px solid rgba(15,23,42,0.08); border-radius: 1.5rem; padding: 1rem 1.25rem; min-height: 180px; }
+        @media (max-width: 640px) {
+            .glass-table { border-spacing: 0; }
+            .glass-table thead { display: none; }
+            .glass-table tbody tr { display: block; margin-bottom: 1rem; border-radius: 1.25rem; padding: 0.5rem 0.25rem; }
+            .glass-table tbody tr td { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; border-radius: 0; padding: 0.9rem 1rem; }
+            .glass-table tbody tr td:first-child { border-radius: 1rem 1rem 0 0; }
+            .glass-table tbody tr td:last-child { border-radius: 0 0 1rem 1rem; border-bottom: none; }
+            .glass-table td::before { content: attr(data-label); font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; color: #94a3b8; margin-right: 1rem; }
+            .glass-table td button { width: 100%; justify-content: center; display: inline-flex; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-animate min-h-screen p-0 m-0 text-slate-800">
+    <div id="disclaimer-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[60] px-4">
+        <div class="bg-white max-w-lg w-full rounded-3xl p-8 shadow-2xl border border-slate-100 text-center space-y-4">
+            <div class="text-4xl">🚧</div>
+            <h2 class="text-2xl font-black text-slate-900">Fines Recreativos</h2>
+            <p class="text-sm sm:text-base text-slate-500 font-medium">
+                Esta información fue recopilada de un documento público de X. El contenido es humorístico y no debe tomarse como asesoramiento profesional.
+            </p>
+            <button id="disclaimer-continue" class="w-full bg-slate-900 text-white font-bold py-3 rounded-2xl shadow-lg hover:bg-violet-600 transition">
+                Continuar
+            </button>
+        </div>
+    </div>
+    <div class="max-w-7xl mx-auto p-4 sm:p-8">
+        <header class="mb-10 text-center text-white drop-shadow-lg">
+            <div class="inline-block bg-black/20 backdrop-blur-md rounded-full px-4 py-1 mb-2 border border-white/20">
+                <span class="text-xs font-bold tracking-widest uppercase">⚠️ Base de Datos de Funa ⚠️</span>
+            </div>
+            <h1 class="text-6xl sm:text-7xl font-black mb-2 tracking-tight">RED FLAG <span class="text-yellow-300 italic">REPORT</span></h1>
+            <p class="text-xl font-medium opacity-90 mb-4">El expediente completo 📂🔥</p>
+            <a href="https://instagram.com/cmescorcia" target="_blank" class="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-full font-bold shadow-lg transform hover:scale-105 transition-all">
+                <i class="fab fa-instagram text-xl"></i><span>Sígueme: @cmescorcia</span>
+            </a>
+        </header>
+        <div id="data-source-notice" class="hidden mb-6 px-4 py-3 rounded-2xl font-bold text-sm flex items-center gap-3 shadow-lg border">
+            <span id="data-source-icon" class="text-xl">🛰️</span>
+            <span id="data-source-text">Cargando fuente...</span>
+        </div>
+        <div id="loading-message" class="hidden flex flex-col items-center justify-center py-16 text-white min-h-[40vh]">
+            <div class="text-7xl animate-bounce mb-8 filter drop-shadow-xl">🔮</div>
+            <div class="loading-bar-container mb-6 border border-white/40 backdrop-blur-sm"><div class="loading-bar-fill"></div></div>
+            <p class="text-3xl font-black tracking-tight animate-pulse drop-shadow-md">Procesando Chisme...</p>
+        </div>
+        <div id="error-message" class="hidden bg-red-100 border-l-8 border-red-500 text-red-700 p-6 rounded-xl mb-8 shadow-lg max-w-2xl mx-auto" role="alert">
+            <p class="font-bold text-lg">Ups, algo salió mal 🫠</p><span id="error-text"></span>
+        </div>
+        <div id="dashboard-content" class="hidden animate-fade-in-up">
+            <!-- <div class="mb-10">
+                <div class="bento-card p-6 sm:p-8 bg-white/90 border border-white/70 rounded-3xl shadow-2xl">
+                    <div class="flex flex-col gap-5">
+                        <div class="space-y-2">
+                            <p class="text-[11px] font-black uppercase tracking-[0.3em] text-violet-500">Pensado para tu teléfono</p>
+                            <h2 class="text-3xl sm:text-4xl font-black text-slate-900 leading-tight">Convierte tu cel en un detector de <span class="text-pink-500">Red Flags</span></h2>
+                            <p class="text-slate-500 text-sm sm:text-base font-medium max-w-2xl">Explora el radar de toxicidad deslizando historias, descubre alertas recientes y comparte el informe con tus amigas. Todo optimizado para pulgar inquieto.</p>
+                        </div> 
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
+                            <div class="bg-slate-100/80 rounded-2xl p-3 flex flex-col">
+                                <span class="text-xl">⏱️</span>
+                                <span class="text-xs font-bold text-slate-400 uppercase">Actualizaciones</span>
+                                <span class="text-sm font-black text-slate-800">Tiempo real</span>
+                            </div>
+                            <div class="bg-slate-100/80 rounded-2xl p-3 flex flex-col">
+                                <span class="text-xl">🎭</span>
+                                <span class="text-xs font-bold text-slate-400 uppercase">Historias</span>
+                                <span class="text-sm font-black text-slate-800">Modo Swipe</span>
+                            </div>
+                            <div class="bg-slate-100/80 rounded-2xl p-3 flex flex-col">
+                                <span class="text-xl">🛡️</span>
+                                <span class="text-xs font-bold text-slate-400 uppercase">Alertas</span>
+                                <span class="text-sm font-black text-slate-800">Multi-tóxicos</span>
+                            </div>
+                            <div class="bg-slate-100/80 rounded-2xl p-3 flex flex-col">
+                                <span class="text-xl">📍</span>
+                                <span class="text-xs font-bold text-slate-400 uppercase">Ubicación</span>
+                                <span class="text-sm font-black text-slate-800">Mapa activo</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="#modo-swipe" class="flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-pink-500 text-white font-black py-3 rounded-2xl shadow-lg hover:opacity-90 transition text-sm uppercase tracking-wide">
+                                <span>Entrar al Modo Swipe</span><i class="fas fa-bolt"></i>
+                            </a>
+                            <a href="#main-table" class="flex-1 inline-flex items-center justify-center gap-2 bg-white text-slate-700 font-black py-3 rounded-2xl border border-slate-200 hover:bg-slate-50 transition text-sm uppercase tracking-wide">
+                                <span>Ir a la Lista Negra</span><i class="fas fa-arrow-down"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+            <div id="modo-swipe" class="mb-12">
+                <div class="bento-card p-6 sm:p-8 flex flex-col gap-8 bg-gradient-to-b from-sky-50 via-white to-white border border-white/70">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <div class="flex-1 space-y-3">
+                            <p class="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400">Modo Swipe Prioritario</p>
+                            <h2 class="text-3xl font-black text-slate-900 flex items-center gap-3"><span>🔥</span>Detecta Red Flags como si fuera Tinder</h2>
+                            <!-- <p class="text-slate-500 font-medium text-sm">Filtramos los expedientes más críticos para que solo tengas que deslizar y compartir. Cada match viene con alertas y contexto clave.</p> -->
+                        </div>
+                        <div class="flex flex-col gap-3 w-full sm:w-72">
+                            <label for="swipe-dept-filter" class="text-[10px] font-black uppercase text-slate-400 tracking-[0.4em]">Filtra por departamento</label>
+                            <select id="swipe-dept-filter" class="border border-white rounded-2xl px-4 py-3 bg-white text-sm font-bold text-slate-700 shadow-inner focus:outline-none focus:ring-2 focus:ring-violet-500">
+                                <option value="">Todos los Departamentos</option>
+                            </select>
+                            <div class="space-y-1">
+                                <div class="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.4em] text-slate-500">
+                                    <span>En cola</span><span id="swipe-progress">0 / 0</span>
+                                </div>
+                                <div class="w-full h-2 bg-white/60 rounded-full overflow-hidden shadow-inner">
+                                    <div id="swipe-progress-bar" class="h-full bg-gradient-to-r from-emerald-400 to-violet-500 w-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                        <div id="swipe-card" class="relative bg-gradient-to-br from-white via-slate-50 to-slate-100 rounded-3xl border border-white/70 shadow-[0_20px_60px_rgba(15,23,42,0.08)] p-6 min-h-[560px] sm:min-h-[460px] flex flex-col gap-5 overflow-hidden">
+                        <div class="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(circle_at_top,_#f43f5e,_transparent_60%)]"></div>
+                        <div class="flex justify-between items-start z-10 gap-4">
+                            <div class="space-y-1">
+                                <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Nuevo match</p>
+                                <h3 class="text-3xl font-black text-slate-900 leading-tight" id="swipe-name">???</h3>
+                                <p class="text-sm font-semibold text-slate-500" id="swipe-meta">Edad • Ciudad • Ocupación</p>
+                            </div>
+                            <div class="flex flex-col items-end gap-2">
+                                <span class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Toxic level</span>
+                                <div class="text-5xl" id="swipe-flags">🚩</div>
+                                <span id="swipe-risk" class="text-sm font-black uppercase tracking-[0.2em] text-emerald-500">--</span>
+                                <div class="w-24 h-1.5 bg-white/80 rounded-full overflow-hidden">
+                                    <div id="swipe-risk-bar" class="h-full bg-emerald-400 w-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 text-[11px] font-black uppercase tracking-[0.3em] text-slate-400" id="swipe-tags"></div>
+                        <div class="grid grid-cols-2 gap-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 z-10">
+                            <div class="swipe-stat">
+                                <p>Departamento</p>
+                                <p id="swipe-dept" class="text-[12px] font-black text-slate-900 normal-case">--</p>
+                            </div>
+                            <div class="swipe-stat">
+                                <p>Reciente</p>
+                                <p id="swipe-fresh" class="text-[12px] font-black text-emerald-500">--</p>
+                            </div>
+                            <div class="swipe-stat">
+                                <p>Longitud</p>
+                                <p id="swipe-length" class="text-xl font-black text-slate-900">--</p>
+                            </div>
+                            <div class="swipe-stat">
+                                <p>Ranking</p>
+                                <p class="text-xl font-black text-slate-900" id="swipe-rank">TOP</p>
+                            </div>
+                        </div>
+                        <div id="swipe-alert" class="z-10 text-xs font-bold uppercase tracking-[0.1em] bg-rose-50 border border-rose-100 text-rose-500 rounded-2xl p-3">Cargando alertas...</div>
+                        <div class="relative flex-1 w-full z-10">
+                            <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-2">Story preview</p>
+                            <div class="story-preview">
+                                <p class="text-base text-slate-600 italic clamped-story pr-2" id="swipe-story">Cargando modo swipe...</p>
+                            </div>
+                            <div class="absolute bottom-3 left-0 right-0 px-6">
+                                <div class="bg-white rounded-full px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] text-center shadow-sm pointer-events-none">Pulsa “Ver completo” para desbloquear</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button id="swipe-pass" class="flex-1 bg-sky-500 text-white font-black py-3 rounded-2xl shadow-lg hover:bg-sky-600 transition text-sm uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed">Ignorar</button>
+                        <button id="swipe-open" class="flex-1 bg-white text-slate-700 font-black py-3 rounded-2xl border border-slate-200 hover:bg-slate-50 transition text-sm uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed">Ver completo</button>
+                        <button id="swipe-next" class="flex-1 bg-slate-900 text-white font-black py-3 rounded-2xl shadow-lg hover:bg-violet-600 transition text-sm uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed">Siguiente</button>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+                <div class="bento-card p-5 flex flex-col justify-between h-36">
+                    <div class="flex justify-between items-start"><span class="text-3xl">📂</span><span class="bg-gray-100 text-gray-500 text-[11px] font-bold px-2 py-1 rounded-full">EXPEDIENTES</span></div>
+                    <div><p class="text-4xl font-black text-slate-800" id="kpi-total">0</p><p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Casos registrados</p></div>
+                </div>
+                <div class="bento-card p-5 flex flex-col justify-between h-36 border-t-4 border-pink-500">
+                    <div class="flex justify-between items-start"><span class="text-3xl">🤘</span><span class="bg-pink-100 text-pink-600 text-[11px] font-bold px-2 py-1 rounded-full">INFIDELIDAD</span></div>
+                    <div><p class="text-4xl font-black text-pink-600" id="kpi-infidelity">0%</p><p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Tasa detectada</p></div>
+                </div>
+                <div class="bento-card p-5 flex flex-col justify-between h-36 border-t-4 border-amber-400">
+                    <div class="flex justify-between items-start"><span class="text-3xl">🆕</span><span class="bg-amber-100 text-amber-600 text-[11px] font-bold px-2 py-1 rounded-full">RECIENTES</span></div>
+                    <div><p class="text-4xl font-black text-amber-600" id="kpi-recent">0</p><p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Últimos 30 días</p></div>
+                </div>
+                <div class="bento-card p-5 flex flex-col justify-between h-36 border-t-4 border-sky-400">
+                    <div class="flex justify-between items-start"><span class="text-3xl">🌎</span><span class="bg-sky-100 text-sky-600 text-[11px] font-bold px-2 py-1 rounded-full">UBICACIONES</span></div>
+                    <div><p class="text-4xl font-black text-sky-600" id="kpi-locations">0</p><p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Ciudades / Deptos</p></div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-12">
+                <div class="bento-card p-6 flex flex-col justify-between bg-slate-900 text-white border-none sm:col-span-2 xl:col-span-2">
+                    <div class="flex justify-between items-start"><span class="text-4xl">🚩</span><span class="bg-white/20 text-white text-[11px] font-bold px-2 py-1 rounded-full">MULTI-TÓXICOS</span></div>
+                    <div class="flex items-end gap-4"><div><p class="text-5xl font-black text-yellow-300" id="kpi-narcissist">0</p><p class="text-sm font-medium text-gray-300">Perfiles de alto riesgo</p></div></div>
+                </div>
+                <div class="bento-card p-5 flex flex-col justify-between h-36 border-t-4 border-violet-500">
+                    <div class="flex justify-between items-start"><span class="text-3xl">🎂</span><span class="bg-violet-100 text-violet-600 text-[11px] font-bold px-2 py-1 rounded-full">EDAD PROM.</span></div>
+                    <div><p class="text-4xl font-black text-violet-600" id="kpi-avg-age">--</p><p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Solo registros con edad</p></div>
+                </div>
+                <div class="bento-card p-5 flex flex-col justify-between h-36 border-t-4 border-rose-500">
+                    <div class="flex justify-between items-start"><span class="text-3xl">📝</span><span class="bg-rose-100 text-rose-600 text-[11px] font-bold px-2 py-1 rounded-full">HISTORIAS</span></div>
+                    <div><p class="text-4xl font-black text-rose-600" id="kpi-long-stories">0</p><p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Relatos +600 caracteres</p></div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+                <div class="bento-card p-6 lg:col-span-2">
+                    <div class="flex items-center justify-between mb-6"><h2 class="text-2xl font-black text-slate-800">Radar de Toxicidad ☢️</h2></div>
+                    <div class="relative h-72"><canvas id="patternsChart"></canvas></div>
+                </div>
+                <div class="bento-card p-6 flex flex-col items-center justify-center text-center">
+                    <h2 class="text-lg font-bold text-gray-400 mb-2 uppercase tracking-widest">Nivel de Peligro</h2>
+                    <div class="relative w-48 h-48 flex items-center justify-center"><canvas id="toxicityLevelChart"></canvas></div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+                <div class="bento-card p-6">
+                    <div class="flex items-center justify-between mb-6"><h2 class="text-2xl font-black text-slate-800">Curva del Chisme 📈</h2><span class="text-xs font-bold text-slate-400 uppercase">Últimos meses</span></div>
+                    <div class="relative h-64"><canvas id="casesTrendChart"></canvas></div>
+                </div>
+                <div class="bento-card p-6">
+                    <div class="flex items-center justify-between mb-6"><h2 class="text-2xl font-black text-slate-800">Rango de Edades 🎯</h2><span class="text-xs font-bold text-slate-400 uppercase">Casos con edad declarada</span></div>
+                    <div class="relative h-64"><canvas id="ageDistributionChart"></canvas></div>
+                </div>
+            </div>
+                    
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+                <div class="bento-card p-6"><h2 class="text-xl font-bold text-slate-800 mb-4">📍 Mapa de Calor</h2><div class="relative h-60"><canvas id="departmentChart"></canvas></div></div>
+                <div class="bento-card p-6"><h2 class="text-xl font-bold text-slate-800 mb-4">💼 Profesiones</h2><div class="relative h-60"><canvas id="occupationChart"></canvas></div></div>
+            </div>
+
+            <div class="mb-12">
+                <h2 class="text-3xl font-black text-white mb-6 drop-shadow-md flex items-center gap-2"><span>🏆</span> HALL OF SHAME <span class="text-lg font-medium text-white/70 ml-2">(Top casos más densos)</span></h2>
+                <div id="hall-of-shame-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+            </div>
+            <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 sm:p-8 mb-12">
+                <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-4">
+                    <div><h2 class="text-3xl font-black text-slate-800 flex items-center gap-2"><span>💀</span> LA LISTA NEGRA</h2><p class="text-slate-500 font-medium">Buscador oficial. Filtra por departamento y texto.</p></div>
+                    <div class="flex flex-col md:flex-row gap-3 w-full xl:w-auto">
+                        <div class="relative w-full md:w-64">
+                            <select id="dept-filter" class="block w-full pl-3 pr-10 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-violet-500 font-bold text-slate-600 appearance-none"><option value="">Todos los Departamentos</option></select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"><svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg></div>
+                        </div>
+                        <div class="relative w-full md:w-80">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-search text-gray-400"></i></div>
+                            <input type="text" id="search-input" class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-violet-500 transition duration-150 ease-in-out font-bold" placeholder="Buscar nombre, ciudad, historia...">
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto min-h-[400px]">
+                    <table class="w-full glass-table text-left" id="main-table">
+                        <thead><tr><th>Nombre</th><th>Edad</th><th>Ubicación</th><th>Ocupación</th><th>Toxic Level</th><th>Acción</th></tr></thead>
+                        <tbody id="table-body" class="text-sm font-medium text-slate-600"></tbody>
+                    </table>
+                </div>
+                <div id="no-results" class="hidden text-center py-10 text-gray-400 font-bold text-lg">No encontramos a ese personaje (por ahora... 🤡)</div>
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                    <span class="text-sm text-gray-500 font-bold" id="page-info">Página 1 de 1</span>
+                    <div class="flex gap-2">
+                        <button id="prev-page" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-slate-600 font-bold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition">Anterior</button>
+                        <button id="next-page" class="px-4 py-2 bg-black text-white border border-black rounded-lg font-bold hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition">Siguiente</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="text-center text-white/60 text-sm font-medium pb-8">Hecho para que abras los ojos 👀 ✨ | Creado por <a href="https://instagram.com/cmescorcia" target="_blank" class="hover:text-yellow-300 transition-colors font-bold underline">@cmescorcia</a></footer>
+    </div>
+    <div id="modal" class="modal opacity-0 pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center z-50">
+        <div class="modal-overlay absolute w-full h-full bg-slate-900 opacity-70"></div>
+        <div class="modal-container bg-white w-11/12 md:max-w-3xl mx-auto rounded-2xl shadow-2xl z-50 overflow-y-auto max-h-[90vh] animate-fade-in-down">
+            <div class="bg-gradient-to-r from-violet-600 to-indigo-600 p-6 text-white relative">
+                <div class="absolute top-4 right-4 cursor-pointer z-50" id="modal-close"><i class="fas fa-times text-2xl hover:text-red-300 transition"></i></div>
+                <h3 class="text-3xl font-black uppercase tracking-tight mb-1" id="modal-name">Nombre</h3>
+                <div class="flex flex-wrap gap-2 text-xs font-bold uppercase opacity-90" id="modal-meta"></div>
+            </div>
+            <div class="p-8 space-y-6">
+                <div><h4 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2"><i class="fas fa-book-open"></i> El Story Time</h4><div class="bg-slate-50 p-5 rounded-xl border border-slate-100 text-slate-700 leading-relaxed text-sm" id="modal-story"></div></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><h4 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2"><i class="fas fa-id-card"></i> Descripción Física</h4><div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 text-xs italic" id="modal-desc"></div></div>
+                    <div><h4 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2"><i class="fas fa-comment-dots"></i> Advertencia Final</h4><div class="bg-red-50 p-4 rounded-xl border border-red-100 text-red-800 text-xs font-bold" id="modal-comment"></div></div>
+                </div>
+                <div class="pt-6 border-t border-gray-100 flex justify-between items-center"><span class="text-xs text-gray-400 font-bold uppercase">Toxicidad detectada:</span><div class="flex gap-1 text-xl" id="modal-flags"></div></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const TIMESTAMP_COL = 0, NAME_COL = 1, SURNAME_COL = 3, OCCUPATION_COL = 4, AGE_COL = 5, DEPT_COL = 6, CITY_COL = 7, STORY_COL = 9, DESC_COL = 10, COMMENT_COL = 11;
+        const REMOTE_DATA_URL = 'https://docs.google.com/spreadsheets/d/1btwg1YGFotu16L2aNGWnWFrwppqRgXybTX8N0uhmIXM/gviz/tq?tqx=out:json&gid=1745475018';
+        const LOCAL_DATA_FALLBACK = 'datos/html/info.html';
+        let charts = {}, globalData = [], currentData = [], currentPage = 1;
+        let swipeData = [], swipeIndex = 0;
+        let swipeDeptSelect = null;
+        let dataSourceNotice = null, dataSourceText = null, dataSourceIcon = null;
+        const ROWS_PER_PAGE = 20;
+        Chart.defaults.font.family = "'Outfit', sans-serif"; Chart.defaults.color = '#64748b';
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('search-input'), deptFilter = document.getElementById('dept-filter'), prevBtn = document.getElementById('prev-page'), nextBtn = document.getElementById('next-page');
+            const swipePass = document.getElementById('swipe-pass'), swipeNext = document.getElementById('swipe-next'), swipeOpen = document.getElementById('swipe-open');
+            swipeDeptSelect = document.getElementById('swipe-dept-filter');
+            const disclaimerBtn = document.getElementById('disclaimer-continue'), disclaimerOverlay = document.getElementById('disclaimer-overlay');
+            dataSourceNotice = document.getElementById('data-source-notice');
+            dataSourceText = document.getElementById('data-source-text');
+            dataSourceIcon = document.getElementById('data-source-icon');
+            if (disclaimerBtn && disclaimerOverlay) {
+                disclaimerBtn.addEventListener('click', () => disclaimerOverlay.classList.add('hidden'));
+            }
+            if (swipeDeptSelect) {
+                swipeDeptSelect.addEventListener('change', () => initSwipeDeck(globalData));
+            }
+            if (swipePass && swipeNext && swipeOpen) {
+                swipePass.addEventListener('click', () => handleSwipe('pass'));
+                swipeNext.addEventListener('click', () => handleSwipe('next'));
+                swipeOpen.addEventListener('click', () => handleSwipe('open'));
+            }
+            searchInput.addEventListener('keyup', filterTable); deptFilter.addEventListener('change', filterTable);
+            prevBtn.addEventListener('click', () => changePage(-1)); nextBtn.addEventListener('click', () => changePage(1));
+            document.getElementById('modal-close').addEventListener('click', closeModal);
+            document.querySelector('.modal-overlay').addEventListener('click', closeModal);
+            document.addEventListener('keydown', (e) => { if(e.key === "Escape") closeModal(); });
+            fetchDataAndRenderDashboard();
+        });
+        function fetchDataAndRenderDashboard() {
+            toggleLoading(true);
+            updateDataSourceIndicator('hide');
+            fetch(REMOTE_DATA_URL).then(r => { if(!r.ok) throw new Error("No file"); return r.text(); })
+            .then(text => processRemoteSheet(text))
+            .catch(err => {
+                console.error('Error fetching remote data', err);
+                fetchLocalBackup();
+            });
+        }
+        function fetchLocalBackup() {
+            fetch(LOCAL_DATA_FALLBACK).then(r => { if(!r.ok) throw new Error("No file"); return r.text(); })
+            .then(html => { updateDataSourceIndicator('local'); processHtmlContent(html); })
+            .catch(err => {
+                console.error('Backup file missing', err);
+                showError('No pudimos cargar los datos en este momento. Intenta refrescar la página más tarde.');
+                toggleLoading(false);
+            });
+        }
+        function updateDataSourceIndicator(state) {
+            if (!dataSourceNotice || !dataSourceText || !dataSourceIcon) return;
+            const dynamicClasses = ['bg-emerald-100','text-emerald-800','border-emerald-200','bg-amber-100','text-amber-800','border-amber-200'];
+            dataSourceNotice.classList.remove(...dynamicClasses);
+            if (state === 'hide') {
+                dataSourceNotice.classList.add('hidden');
+                return;
+            }
+            const config = state === 'remote'
+                ? { icon: '🛰️', text: 'Datos en vivo desde Google Sheets (recién actualizados).', classes: ['bg-emerald-100','text-emerald-800','border-emerald-200'] }
+                : { icon: '📁', text: 'Datos cargados desde el archivo local (pueden estar desactualizados).', classes: ['bg-amber-100','text-amber-800','border-amber-200'] };
+            dataSourceNotice.classList.remove('hidden');
+            dataSourceNotice.classList.add(...config.classes);
+            dataSourceIcon.textContent = config.icon;
+            dataSourceText.textContent = config.text;
+        }
+        function processRemoteSheet(text) {
+            try {
+                const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                const payload = JSON.parse(jsonString);
+                const rows = payload?.table?.rows || [];
+                const data = extractDataFromGviz(rows);
+                updateDataSourceIndicator('remote');
+                processDataArray(data);
+            } catch (err) {
+                console.error('Remote data parsing failed', err);
+                fetchLocalBackup();
+            }
+        }
+        function resetVisuals() { Object.values(charts).forEach(c => c.destroy()); charts = {}; swipeData = []; swipeIndex = 0; updateSwipeCard(); }
+        function processHtmlContent(html) {
+            resetVisuals();
+            const parser = new DOMParser(); const doc = parser.parseFromString(html, 'text/html');
+            const rows = doc.querySelectorAll('table.waffle tbody tr');
+            if (rows.length < 3) { showError('Formato de archivo incorrecto.'); toggleLoading(false); return; }
+            const data = extractData(rows);
+            processDataArray(data);
+        }
+        function processDataArray(data) {
+            resetVisuals();
+            if (data.length === 0) { showError('No se encontraron datos.'); toggleLoading(false); return; }
+            globalData = data;
+            populateDeptFilter(data);
+            populateSwipeDeptFilter(data);
+            analyzeAndRender(data);
+            toggleLoading(false);
+            document.getElementById('dashboard-content').classList.remove('hidden');
+        }
+        function extractData(rows) {
+            const data = [];
+            for (let i = 2; i < rows.length; i++) {
+                const cells = rows[i].querySelectorAll('td');
+                if (cells.length > COMMENT_COL) {
+                    const timestampText = cells[TIMESTAMP_COL]?.textContent?.trim() || '';
+                    const timestamp = parseTimestamp(timestampText);
+                    const ageText = cells[AGE_COL]?.textContent?.trim() || '';
+                    let age = null;
+                    const ageMatch = ageText.match(/\d+/);
+                    if (ageMatch) age = parseInt(ageMatch[0]);
+                    const name = (cells[NAME_COL]?.textContent || "").trim();
+                    const surname = (cells[SURNAME_COL]?.textContent || "").trim();
+                    const fullName = name ? `${name} ${surname}` : "Anónimo";
+                    const story = cells[STORY_COL]?.textContent || "Sin historia";
+                    const desc = cells[DESC_COL]?.textContent || "Sin descripción";
+                    const comments = cells[COMMENT_COL]?.textContent || "Sin comentarios";
+                    const department = (cells[DEPT_COL]?.textContent || "Mundo").trim().toUpperCase();
+                    const city = (cells[CITY_COL]?.textContent || "").trim();
+                    const fullText = (story + " " + desc + " " + comments + " " + fullName + " " + department + " " + city).toLowerCase();
+                    data.push({ id: i, name: fullName, age: age, occupation: (cells[OCCUPATION_COL]?.textContent || "Ni idea").trim().toUpperCase(), department: department, city: city, story: story, description: desc, comments: comments, text: fullText, length: story.length + desc.length + comments.length, timestamp });
+                }
+            }
+            return data.filter(d => d.text.length > 20);
+        }
+        function extractDataFromGviz(rows) {
+            const data = [];
+            for (let i = 2; i < rows.length; i++) {
+                const cells = rows[i]?.c || [];
+                if (cells.length > COMMENT_COL) {
+                    const getValue = (idx) => {
+                        const cell = cells[idx];
+                        if (!cell || cell.v === null || typeof cell.v === 'undefined') return '';
+                        if (typeof cell.v === 'object' && cell.f) return String(cell.f).trim();
+                        if (typeof cell.v === 'string') return cell.v.trim();
+                        return String(cell.v).trim();
+                    };
+                    const name = getValue(NAME_COL);
+                    const surname = getValue(SURNAME_COL);
+                    const ageText = getValue(AGE_COL);
+                    let age = null;
+                    const ageMatch = ageText.match(/\d+/);
+                    if (ageMatch) age = parseInt(ageMatch[0]);
+                    const fullName = name ? `${name} ${surname}`.trim() : "Anónimo";
+                    const story = getValue(STORY_COL) || "Sin historia";
+                    const desc = getValue(DESC_COL) || "Sin descripción";
+                    const comments = getValue(COMMENT_COL) || "Sin comentarios";
+                    const department = (getValue(DEPT_COL) || "Mundo").toUpperCase();
+                    const city = getValue(CITY_COL);
+                    const occupation = (getValue(OCCUPATION_COL) || "Ni idea").toUpperCase();
+                    const timestamp = parseTimestamp(getValue(TIMESTAMP_COL));
+                    const fullText = (story + " " + desc + " " + comments + " " + fullName + " " + department + " " + city).toLowerCase();
+                    data.push({ id: i, name: fullName, age: age, occupation: occupation, department: department, city: city, story: story, description: desc, comments: comments, text: fullText, length: story.length + desc.length + comments.length, timestamp });
+                }
+            }
+            return data.filter(d => d.text.length > 20);
+        }
+        function parseTimestamp(value) {
+            if (!value) return null;
+            const direct = new Date(value);
+            if (!isNaN(direct)) return direct;
+            const [datePart, timePart = ''] = value.split(' ');
+            const pieces = datePart.split(/[\/\-]/);
+            if (pieces.length === 3) {
+                const [first, second, third] = pieces;
+                const alt = new Date(`${second}/${first}/${third} ${timePart}`.trim());
+                if (!isNaN(alt)) return alt;
+                const iso = `${third}-${second.padStart(2, '0')}-${first.padStart(2, '0')}T${timePart || '00:00:00'}`;
+                const isoDate = new Date(iso);
+                if (!isNaN(isoDate)) return isoDate;
+            }
+            return null;
+        }
+        function getAgeBucket(age) {
+            if (age <= 21) return '<=21';
+            if (age <= 27) return '22-27';
+            if (age <= 33) return '28-33';
+            if (age <= 39) return '34-39';
+            return '40+';
+        }
+        function getTrendKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; }
+        function buildTrendSeries(counts) {
+            const keys = Object.keys(counts).sort();
+            const lastKeys = keys.slice(-6);
+            const labels = lastKeys.map(formatTrendLabel);
+            const values = lastKeys.map(k => counts[k]);
+            return { labels, values };
+        }
+        function formatTrendLabel(key) {
+            if (!key) return 'N/D';
+            const [year, month] = key.split('-');
+            const monthNames = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+            const idx = parseInt(month, 10) - 1;
+            const labelMonth = monthNames[idx] || 'N/D';
+            return `${labelMonth} '${year.slice(-2)}`;
+        }
+        function getRelativeTime(date) {
+            if (!(date instanceof Date) || isNaN(date)) return null;
+            const diffMs = Date.now() - date.getTime();
+            const diffDays = Math.max(0, Math.floor(diffMs / 86400000));
+            if (diffDays === 0) return 'HOY';
+            if (diffDays === 1) return 'AYER';
+            if (diffDays < 30) return `HACE ${diffDays} DÍAS`;
+            const diffMonths = Math.floor(diffDays / 30);
+            if (diffMonths < 12) return `HACE ${diffMonths}M`;
+            const diffYears = Math.floor(diffMonths / 12);
+            return `HACE ${diffYears}A`;
+        }
+        function getRiskInfo(flagsCount) {
+            if (!flagsCount || flagsCount <= 1) return { label: 'BÁSICO', color: 'text-emerald-500' };
+            if (flagsCount <= 3) return { label: 'TÓXICO', color: 'text-amber-500' };
+            return { label: 'LETAL', color: 'text-rose-600' };
+        }
+        function populateDeptFilter(data) {
+            const select = document.getElementById('dept-filter');
+            const depts = [...new Set(data.map(d => d.department))].filter(d => d && d !== "MUNDO" && d.length > 2).sort();
+            while (select.options.length > 1) { select.remove(1); }
+            depts.forEach(dept => { const option = document.createElement('option'); option.value = dept; option.textContent = dept; select.appendChild(option); });
+        }
+        function populateSwipeDeptFilter(data) {
+            if (!swipeDeptSelect) return;
+            const currentVal = swipeDeptSelect.value;
+            const depts = [...new Set(data.map(d => d.department))].filter(d => d && d !== "MUNDO" && d.length > 2).sort();
+            swipeDeptSelect.innerHTML = '<option value="">Todos los Departamentos</option>';
+            depts.forEach(dept => {
+                const opt = document.createElement('option');
+                opt.value = dept;
+                opt.textContent = dept;
+                swipeDeptSelect.appendChild(opt);
+            });
+            if (currentVal && depts.includes(currentVal)) {
+                swipeDeptSelect.value = currentVal;
+            }
+        }
+        function analyzeAndRender(data) {
+            const patterns = { 'Cachos 🤘': ['infiel', 'cachos', 'cuerno', 'moza', 'otra', 'engaño', 'engañó', 'otras', 'mujeres'], 'Ego Trip 💅': ['narcisista', 'ego', 'egocéntrico', 'manipulador', 'víctima', 'loca', 'culpa'], 'Tacaño 💸': ['plata', 'dinero', 'tacaño', 'mantenido', 'debe', 'pagar', 'interesado'], 'Pinocho 🤥': ['mentiroso', 'miente', 'mitómano', 'ocultó', 'negaba', 'falso'], 'Violento 🚩': ['golpe', 'pegó', 'agresivo', 'violento', 'grita', 'miedo', 'maltrato'], 'Stalker 👀': ['acosa', 'busca', 'ruega', 'escribe', 'stalkea', 'persigue'], 'Vicios 🍺': ['toma', 'borracho', 'droga', 'vicio', 'marihuana', 'perico'] };
+            const patternCounts = {}; for (const key in patterns) patternCounts[key] = 0;
+            let totalInfidelity = 0, toxicityLevels = { 'Básico': 0, 'Tóxico': 0, 'Letal': 0 };
+            const now = Date.now(), RECENT_WINDOW = 1000 * 60 * 60 * 24 * 30;
+            let recentCases = 0, longStories = 0, ageSum = 0, ageCount = 0;
+            const locationSet = new Set();
+            const trendCounts = {};
+            const ageBuckets = { '<=21': 0, '22-27': 0, '28-33': 0, '34-39': 0, '40+': 0 };
+            data.forEach(item => {
+                let flags = 0, isInfidel = false;
+                for (const [cat, words] of Object.entries(patterns)) { if (words.some(w => item.text.includes(w))) { patternCounts[cat]++; flags++; if (cat === 'Cachos 🤘') isInfidel = true; } }
+                if (isInfidel) totalInfidelity++;
+                if (flags <= 1) toxicityLevels['Básico']++; else if (flags <= 3) toxicityLevels['Tóxico']++; else toxicityLevels['Letal']++;
+                item.dramaScore = (item.length / 50) + (flags * 15); item.flagsCount = flags;
+                if (item.timestamp instanceof Date && !isNaN(item.timestamp)) {
+                    const diff = now - item.timestamp.getTime();
+                    if (diff <= RECENT_WINDOW) recentCases++;
+                    const trendKey = getTrendKey(item.timestamp);
+                    trendCounts[trendKey] = (trendCounts[trendKey] || 0) + 1;
+                }
+                const locality = (item.city || item.department || "").trim();
+                if (locality) locationSet.add(locality.toUpperCase());
+                if (item.age && !isNaN(item.age)) {
+                    ageSum += item.age; ageCount++;
+                    const bucket = getAgeBucket(item.age);
+                    ageBuckets[bucket] = (ageBuckets[bucket] || 0) + 1;
+                }
+                if (item.length >= 600) longStories++;
+            });
+            renderHallOfShame(data); initSwipeDeck(data); filterTable();
+            document.getElementById('kpi-total').textContent = data.length;
+            document.getElementById('kpi-infidelity').textContent = ((totalInfidelity/data.length)*100).toFixed(0) + "%";
+            document.getElementById('kpi-narcissist').textContent = toxicityLevels['Letal'];
+            document.getElementById('kpi-recent').textContent = recentCases;
+            document.getElementById('kpi-locations').textContent = locationSet.size;
+            document.getElementById('kpi-long-stories').textContent = longStories;
+            document.getElementById('kpi-avg-age').textContent = ageCount ? `${Math.round(ageSum / ageCount)} años` : '--';
+            renderPatternChart(patternCounts); renderToxicityChart(toxicityLevels);
+            renderCasesTrendChart(buildTrendSeries(trendCounts));
+            const ageEntries = ['<=21', '22-27', '28-33', '34-39', '40+'].map(label => ({ label, value: ageBuckets[label] || 0 }));
+            renderAgeDistributionChart(ageEntries);
+            const occ = data.map(d => d.occupation).filter(o => o.length > 2 && o !== "NI IDEA"); renderBarChart('occupationChart', getTopFreq(occ, 5), 'Profesión', '#8b5cf6');
+            const depts = data.map(d => d.department).filter(d => d.length > 2 && d !== "MUNDO"); renderBarChart('departmentChart', getTopFreq(depts, 5), 'Zona', '#ec4899', 'y');
+        }
+        function renderHallOfShame(data) {
+            const container = document.getElementById('hall-of-shame-container'); container.innerHTML = '';
+            const topCases = [...data].sort((a, b) => b.dramaScore - a.dramaScore).slice(0, 6);
+            topCases.forEach((item, index) => {
+                const snippet = item.story.length > 140 ? item.story.substring(0, 140) + "..." : item.story;
+                const badgeColor = index === 0 ? 'bg-red-500' : (index === 1 ? 'bg-orange-500' : 'bg-slate-800');
+                const card = document.createElement('div');
+                card.className = "highlight-case bento-card p-6 flex flex-col relative overflow-hidden cursor-pointer group hover:bg-white transition-all";
+                card.innerHTML = `<div class="absolute top-4 right-4 ${badgeColor} text-white text-xs font-bold px-2 py-1 rounded shadow-lg z-10">TOP #${index + 1}</div><div class="mb-4 pr-10"><h3 class="text-xl font-black text-slate-800 mb-1 truncate capitalize">${item.name.toLowerCase()}</h3><div class="flex flex-wrap gap-2 text-xs font-bold text-gray-400 uppercase"><span>${item.age || '?'} Años</span> • <span>${item.city || item.department}</span></div><p class="text-xs text-violet-500 font-bold mt-1 truncate">${item.occupation}</p></div><p class="text-sm text-gray-600 italic mb-4 flex-grow">"${snippet}"</p><div class="mt-auto pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-bold text-slate-400"><button class="shame-open bg-black/80 text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-violet-600 transition">Abrir expediente</button><span class="text-lg">${'🚩'.repeat(Math.min(item.flagsCount, 5))}</span></div>`;
+                card.onclick = () => openModal(item);
+                const quickBtn = card.querySelector('.shame-open');
+                if (quickBtn) quickBtn.addEventListener('click', (ev) => { ev.stopPropagation(); openModal(item); });
+                container.appendChild(card);
+            });
+        }
+        function initSwipeDeck(data) {
+            const selectedDept = swipeDeptSelect ? swipeDeptSelect.value : '';
+            const sorted = [...data].sort((a, b) => b.dramaScore - a.dramaScore);
+            const prioritized = sorted.filter(item => item.story && item.story.length > 40 && (selectedDept === '' || item.department === selectedDept));
+            swipeData = prioritized.slice(0, 30);
+            swipeIndex = 0;
+            updateSwipeCard();
+        }
+        function updateSwipeCard() {
+            const nameEl = document.getElementById('swipe-name');
+            const metaEl = document.getElementById('swipe-meta');
+            const storyEl = document.getElementById('swipe-story');
+            const flagEl = document.getElementById('swipe-flags');
+            const tagsEl = document.getElementById('swipe-tags');
+            const progressEl = document.getElementById('swipe-progress');
+            const deptEl = document.getElementById('swipe-dept');
+            const freshEl = document.getElementById('swipe-fresh');
+            const riskEl = document.getElementById('swipe-risk');
+            const lengthEl = document.getElementById('swipe-length');
+            const alertEl = document.getElementById('swipe-alert');
+            const rankEl = document.getElementById('swipe-rank');
+            const progressBar = document.getElementById('swipe-progress-bar');
+            const riskBar = document.getElementById('swipe-risk-bar');
+            const passBtn = document.getElementById('swipe-pass');
+            const openBtn = document.getElementById('swipe-open');
+            const nextBtn = document.getElementById('swipe-next');
+            if (!nameEl || !metaEl || !storyEl || !flagEl || !tagsEl || !progressEl) return;
+            const hasDeck = swipeData.length > 0;
+            progressEl.textContent = hasDeck ? `${Math.min(swipeIndex + 1, swipeData.length)} / ${swipeData.length}` : '0 / 0';
+            if (progressBar) progressBar.style.width = hasDeck ? `${((Math.min(swipeIndex + 1, swipeData.length))/swipeData.length)*100}%` : '0%';
+            [passBtn, openBtn, nextBtn].forEach(btn => { if (btn) btn.disabled = !hasDeck; });
+            if (!hasDeck) {
+                nameEl.textContent = 'Sin casos';
+                metaEl.textContent = 'Carga nuevos registros para activar el modo swipe.';
+                storyEl.textContent = 'Cuando la base se actualice, aquí aparecerán perfiles aleatorios para deslizar.';
+                flagEl.textContent = '🧊';
+                tagsEl.innerHTML = '';
+                if (deptEl) deptEl.textContent = '--';
+                if (freshEl) freshEl.textContent = '--';
+                if (riskEl) { riskEl.textContent = '--'; riskEl.className = 'text-sm font-black uppercase tracking-[0.2em] text-slate-500'; }
+                if (lengthEl) lengthEl.textContent = '--';
+                if (rankEl) rankEl.textContent = '--';
+                if (riskBar) riskBar.style.width = '0%';
+                if (alertEl) alertEl.textContent = 'Cargando alertas...';
+                return;
+            }
+            if (swipeIndex >= swipeData.length) swipeIndex = 0;
+            const item = swipeData[swipeIndex];
+            nameEl.textContent = item.name.toLowerCase();
+            const region = (item.city || item.department || 'Sin región').toLowerCase();
+            const occupation = (item.occupation || 'Sin info').toLowerCase();
+            metaEl.textContent = `${item.age || '?'} años • ${region} • ${occupation}`;
+            const snippet = item.story.length > 220 ? `${item.story.substring(0, 220)}...` : item.story;
+            storyEl.textContent = snippet;
+            flagEl.textContent = item.flagsCount ? '🚩'.repeat(Math.min(item.flagsCount, 5)) : '⚪️';
+            if (deptEl) deptEl.textContent = item.department || 'SIN REGISTRO';
+            if (freshEl) freshEl.textContent = getRelativeTime(item.timestamp) || 'Sin fecha';
+            if (lengthEl) lengthEl.textContent = `${item.length} chars`;
+            if (riskEl) {
+                const risk = getRiskInfo(item.flagsCount);
+                riskEl.textContent = risk.label;
+                riskEl.className = `text-sm font-black uppercase tracking-[0.2em] ${risk.color}`;
+                if (riskBar) {
+                    riskBar.style.width = `${risk.percent}%`;
+                    riskBar.style.background = risk.bar;
+                }
+            }
+            if (rankEl) {
+                const rankLabel = swipeIndex < 3 ? `TOP ${swipeIndex + 1}` : `#${swipeIndex + 1}`;
+                rankEl.textContent = rankLabel;
+            }
+            if (alertEl) alertEl.textContent = item.comments && item.comments.trim().length > 0 ? item.comments.trim().substring(0, 140) + (item.comments.trim().length > 140 ? '...' : '') : 'Sin advertencias adicionales.';
+            const tagItems = buildSwipeTags(item);
+            tagsEl.innerHTML = tagItems.map(tag => `<span class="px-2 py-1 bg-slate-100 rounded-full">${tag}</span>`).join('');
+            [passBtn, openBtn, nextBtn].forEach(btn => { if (btn) btn.disabled = false; });
+        }
+        function handleSwipe(action) {
+            if (!swipeData.length) return;
+            const cardEl = document.getElementById('swipe-card');
+            const current = swipeData[swipeIndex] || swipeData[0];
+            if (!current) return;
+            if (action === 'open') { openModal(current); return; }
+            triggerSwipeAnimation(cardEl, action);
+            const total = swipeData.length;
+            if (total === 0) return;
+            swipeIndex = (swipeIndex + 1) % total;
+            updateSwipeCard();
+        }
+        function triggerSwipeAnimation(card, action) {
+            if (!card) return;
+            card.classList.remove('swipe-like', 'swipe-pass');
+            void card.offsetWidth;
+            card.classList.add(action === 'next' ? 'swipe-like' : 'swipe-pass');
+            setTimeout(() => {
+                card.classList.remove('swipe-like', 'swipe-pass');
+            }, 450);
+        }
+        function buildSwipeTags(item) {
+            const tags = [];
+            if (item.department) tags.push(item.department);
+            if (item.flagsCount) tags.push(`${item.flagsCount} flags`);
+            const risk = getRiskInfo(item.flagsCount);
+            tags.push(risk.label);
+            const relative = getRelativeTime(item.timestamp);
+            if (relative) tags.push(relative);
+            if (item.occupation) tags.push(item.occupation.split(' ')[0]);
+            return tags;
+        }
+        function filterTable() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const deptTerm = document.getElementById('dept-filter').value;
+            currentData = globalData.filter(item => { const matchesSearch = item.text.includes(searchTerm); const matchesDept = deptTerm === "" || item.department === deptTerm; return matchesSearch && matchesDept; });
+            currentPage = 1; renderTablePage();
+        }
+        function changePage(direction) { currentPage += direction; renderTablePage(); }
+        function renderTablePage() {
+            const tbody = document.getElementById('table-body'); tbody.innerHTML = '';
+            const totalPages = Math.ceil(currentData.length / ROWS_PER_PAGE) || 1;
+            if (currentPage < 1) currentPage = 1; if (currentPage > totalPages) currentPage = totalPages;
+            const start = (currentPage - 1) * ROWS_PER_PAGE; const end = start + ROWS_PER_PAGE;
+            const pageData = currentData.slice(start, end);
+            document.getElementById('page-info').textContent = `Página ${currentPage} de ${totalPages}`;
+            document.getElementById('prev-page').disabled = currentPage === 1; document.getElementById('next-page').disabled = currentPage === totalPages;
+            if (pageData.length === 0) { document.getElementById('no-results').classList.remove('hidden'); return; }
+            document.getElementById('no-results').classList.add('hidden');
+            pageData.forEach(item => {
+                const tr = document.createElement('tr');
+                const cells = [
+                    { label: 'Nombre', value: `<span class="font-bold capitalize text-slate-800">${item.name.toLowerCase()}</span>` },
+                    { label: 'Edad', value: item.age || '-' },
+                    { label: 'Ubicación', value: `<span class="capitalize">${(item.city || item.department).toLowerCase()}</span>` },
+                    { label: 'Ocupación', value: `<span class="capitalize truncate block max-w-[200px]">${item.occupation.toLowerCase()}</span>` },
+                    { label: 'Toxic Level', value: `${'🚩'.repeat(Math.min(item.flagsCount, 3))}${item.flagsCount > 3 ? '+' : ''}` },
+                    { label: 'Acción', value: `<button class="bg-black text-white text-xs font-bold px-3 py-1 rounded-full hover:bg-violet-600 transition w-full sm:w-auto">VER INFO</button>` }
+                ];
+                tr.innerHTML = cells.map(cell => `<td data-label="${cell.label}">${cell.value}</td>`).join('');
+                tr.onclick = () => openModal(item); tbody.appendChild(tr);
+            });
+        }
+        function openModal(item) {
+            document.getElementById('modal-name').textContent = item.name.toLowerCase();
+            document.getElementById('modal-meta').innerHTML = `<span>${item.age ? item.age + ' AÑOS' : 'EDAD DESCONOCIDA'}</span> • <span>${item.city || item.department}</span> • <span>${item.occupation}</span>`;
+            document.getElementById('modal-story').innerHTML = item.story || "No hay historia disponible.";
+            document.getElementById('modal-desc').innerHTML = item.description || "Sin descripción física.";
+            document.getElementById('modal-comment').innerHTML = item.comments || "Sin advertencias adicionales.";
+            document.getElementById('modal-flags').innerHTML = '🚩'.repeat(Math.min(item.flagsCount, 10));
+            document.getElementById('modal').classList.remove('opacity-0', 'pointer-events-none'); document.body.classList.add('modal-active');
+        }
+        function closeModal() { document.getElementById('modal').classList.add('opacity-0', 'pointer-events-none'); document.body.classList.remove('modal-active'); }
+        function renderPatternChart(counts) {
+            const ctx = document.getElementById('patternsChart').getContext('2d');
+            charts.patterns = new Chart(ctx, { type: 'radar', data: { labels: Object.keys(counts), datasets: [{ label: 'Frecuencia', data: Object.values(counts), backgroundColor: 'rgba(236, 72, 153, 0.2)', borderColor: '#ec4899', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { r: { grid: { color: 'rgba(0,0,0,0.05)' }, pointLabels: { font: { size: 11, weight: 'bold' }, color: '#475569' }, ticks: { display: false, stepSize: 1, precision: 0 }, min: 0 } }, plugins: { legend: { display: false } } } });
+        }
+        function renderToxicityChart(levels) {
+            const ctx = document.getElementById('toxicityLevelChart').getContext('2d');
+            charts.toxicity = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(levels), datasets: [{ data: Object.values(levels), backgroundColor: ['#60a5fa', '#fbbf24', '#ef4444'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } } });
+        }
+        function renderCasesTrendChart(series) {
+            const ctx = document.getElementById('casesTrendChart').getContext('2d');
+            const labels = series.labels.length ? series.labels : ['SIN DATOS'];
+            const values = series.values.length ? series.values : [0];
+            charts.casesTrend = new Chart(ctx, { type: 'line', data: { labels, datasets: [{ label: 'Reportes', data: values, borderColor: '#f43f5e', backgroundColor: 'rgba(244,63,94,0.15)', borderWidth: 3, fill: true, tension: 0.35, pointRadius: 4, pointBackgroundColor: '#f43f5e' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 11 } } }, y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } } } } });
+        }
+        function renderAgeDistributionChart(entries) {
+            const ctx = document.getElementById('ageDistributionChart').getContext('2d');
+            charts.ageDistribution = new Chart(ctx, { type: 'bar', data: { labels: entries.map(e => e.label), datasets: [{ label: 'Casos', data: entries.map(e => e.value), backgroundColor: '#0ea5e9', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 11 } } }, y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(0,0,0,0.05)' } } } } });
+        }
+        function renderBarChart(canvasId, dataEntries, label, color, axis = 'x') {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const valueAxis = axis === 'y' ? 'x' : 'y'; const categoryAxis = axis === 'y' ? 'y' : 'x';
+            charts[canvasId] = new Chart(ctx, { type: 'bar', data: { labels: dataEntries.map(e => e[0]), datasets: [{ label: label, data: dataEntries.map(e => e[1]), backgroundColor: color, borderRadius: 6, barThickness: axis === 'y' ? 12 : undefined }] }, options: { indexAxis: axis, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { [categoryAxis]: { grid: { display: false }, ticks: { font: { size: 10 } } }, [valueAxis]: { grid: { borderDash: [5, 5] }, ticks: { font: { size: 10 }, precision: 0, stepSize: 1 }, beginAtZero: true, suggestedMax: 5 } } } });
+        }
+        function getTopFreq(arr, limit) { const counts = arr.reduce((acc, val) => { acc[val] = (acc[val] || 0) + 1; return acc; }, {}); return Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, limit); }
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+        function toggleLoading(show) { document.getElementById('loading-message').classList.toggle('hidden', !show); document.getElementById('dashboard-content').classList.toggle('hidden', show); }
+        function showError(msg) {
+            document.getElementById('error-message').classList.remove('hidden');
+            document.getElementById('error-text').textContent = msg;
+            document.getElementById('loading-message').classList.add('hidden');
+            updateDataSourceIndicator('hide');
+        }
+        function hideError() { document.getElementById('error-message').classList.add('hidden'); }
+    </script>
+</body>
+</html>
